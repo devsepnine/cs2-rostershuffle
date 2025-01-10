@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "cs2-rostershuffler",
+  "version": "0.1.0",
+  "identifier": "com.cozyfizz.cs2-rostershuffler",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "CS2-RosterShuffler",
+        "width": 900,
+        "height": 600,
+        "minWidth": 822,
+        "visible": false,
+        "center": true,
+        "useHttpsScheme": true,
+        "label": "main"
+      },
+      {
+        "width": 300,
+        "height": 450,
+        "decorations": false,
+        "url": "splashscreen.html",
+        "label": "splashscreen",
+        "center": true,
+        "transparent": true,
+        "useHttpsScheme": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "https://timestamp.digicert.com",
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "languages": [
+          "Korean",
+          "English",
+          "Japanese"
+        ],
+        "displayLanguageSelector": true
+      }
+    }
+  }
+}

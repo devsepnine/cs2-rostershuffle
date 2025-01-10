@@ -1,0 +1,95 @@
+<script lang="ts">
+  import Player from "$lib/components/player/Player.svelte";
+  import {ScrollArea} from "$lib/components/ui/scroll-area";
+  import upload from "$lib/assets/upload.svg"
+
+  export let playerList;
+  export let uploadFunc;
+
+  $: sortedPlayers = [...playerList].sort((a, b) => {
+    if (a.check && !b.check) return -1;
+    if (!a.check && b.check) return 1;
+    return 0;
+  });
+
+  const selectPlayer = () => {
+    if (!Array.isArray(playerList)) {
+      console.error("playerList 는 배열이어야 합니다.");
+      return 0;
+    }
+
+    return playerList.reduce((acc, player) => {
+      if (player.check) {
+        return acc + 1;
+      }
+      return acc;
+    }, 0);
+  }
+</script>
+
+<div class="overflow-hidden relative flex flex-col items-center h-full max-h-full">
+    <div class="title">
+        Player ( {selectPlayer()} )
+    </div>
+    <div class="list-container">
+        <ScrollArea class="h-full">
+            <div class="player">
+                {#each sortedPlayers as player (player.name)}
+                    <Player bind:check={player.check} player={player}/>
+                {/each}
+                <div class="util">
+                    <button class="upload" on:click={uploadFunc}>
+                        <img src={upload} alt="upload"/> <span>Import</span>
+                    </button>
+                </div>
+            </div>
+
+        </ScrollArea>
+    </div>
+</div>
+
+<style>
+    .title {
+        width: 100%;
+        padding: 1rem 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        border-bottom: 1px solid hsl(var(--border));
+    }
+
+    .list-container {
+        width: 100%;
+        height: calc(100% - 4.3125rem);
+
+        .player {
+            display: flex;
+            flex-direction: column;
+            row-gap: 0.5rem;
+            padding: 1rem 0;
+        }
+
+        .util {
+            display: flex;
+            align-items: center;
+            height: 50px;
+            padding: 0 16px;
+
+            img {
+                width: 25px;
+                cursor: pointer;
+            }
+
+            .upload {
+                display: flex;
+                align-items: center;
+                column-gap: 0.5rem;
+                width: 100%;
+                height: 100%;
+                padding: 0.5rem;
+                background: hsl(var(--background) / 0.5);
+                border-radius: 0.5rem;
+            }
+        }
+    }
+</style>

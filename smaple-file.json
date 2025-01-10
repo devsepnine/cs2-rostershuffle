@@ -1,0 +1,51 @@
+{
+  "players": [
+    {
+      "name": "sample",
+      "premierScore": 5000,
+      "kd": 1.2,
+      "hltvRating": 1.0,
+      "winRate": 43,
+      "headshotPercentage": 43,
+      "adr": 120
+    }
+  ],
+  "mapWeights": [
+    {
+      "name": "Dust2",
+      "weight": 2.0
+    },
+    {
+      "name": "Mirage",
+      "weight": 2.0
+    },
+    {
+      "name": "Inferno",
+      "weight": 2.0
+    },
+    {
+      "name": "Overpass",
+      "weight": 0.75
+    },
+    {
+      "name": "Nuke",
+      "weight": 1.0
+    },
+    {
+      "name": "Vertigo",
+      "weight": 1.0
+    },
+    {
+      "name": "Ancient",
+      "weight": 1.0
+    },
+    {
+      "name": "Anubis",
+      "weight": 0.25
+    },
+    {
+      "name": "Train",
+      "weight": 0.75
+    }
+  ]
+}

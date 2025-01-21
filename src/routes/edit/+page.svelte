@@ -9,9 +9,10 @@
   import PlayerADD from "$lib/components/edit/PlayerADD.svelte";
   import MapEdit from "$lib/components/edit/MapEdit.svelte";
   import CustomElo from "$lib/components/edit/CustomElo.svelte";
+  import {STORE_ID} from "../../store/rosterStore";
 
-  $: playerStore = localStorageWritable<IPlayer[]>('playerStore', []);
-  $: mapStore = localStorageWritable<IMap[]>('mapStore', []);
+  $: playerStore = localStorageWritable<IPlayer[]>(STORE_ID.player, []);
+  $: mapStore = localStorageWritable<IMap[]>(STORE_ID.map, []);
 
   const goHome = () => {
     goto('/');

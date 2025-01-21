@@ -7,16 +7,25 @@ import {
 } from "../types/common";
 import { localStorageWritable } from "./localStorageStore";
 
-export const customEloStore = localStorageWritable<ICustomElo>("customElo", {
-  adr: 10,
-  kd: 6,
-  winRate: 2,
-  headshotPercentage: 4,
-  hltvRating: 10,
-});
+export const STORE_ID = {
+  player: "playerInfoStore",
+  map: "mapInfoStore",
+  customElo: "customEloInfo",
+};
 
-export const playerStore = localStorageWritable<IPlayer[]>("playerStore", []);
-export const mapStore = localStorageWritable<IMap[]>("mapStore", [
+export const customEloStore = localStorageWritable<ICustomElo>(
+  STORE_ID.customElo,
+  {
+    adr: 10,
+    kd: 6,
+    winRate: 2,
+    headshotPercentage: 4,
+    hltvRating: 10,
+  },
+);
+
+export const playerStore = localStorageWritable<IPlayer[]>(STORE_ID.player, []);
+export const mapStore = localStorageWritable<IMap[]>(STORE_ID.map, [
   {
     name: "Dust2",
     weight: 1,

@@ -1,12 +1,11 @@
 <script lang="ts">
-  import type {IMap, IPlayer, IPlayerCheck} from "../types/common";
+  import type {IPlayer, IPlayerCheck} from "../types/common";
   import PlayerList from "$lib/components/player/PlayerList.svelte";
   import Result from "$lib/components/result/Result.svelte";
   import {goto} from "$app/navigation";
   import {
     calculateCustomELO,
     createCumulativeWeights,
-    isValidMapArray,
     isValidPlayerArray,
     selectRandomWeightedBinary
   } from "$lib/utils";
@@ -47,8 +46,8 @@
           if (!data) {
             return;
           }
-          const {players, mapWeights: maps}: { players: IPlayer[], mapWeights: IMap[] } = JSON.parse(data);
-          if (!isValidPlayerArray(players) || !isValidMapArray(maps)) {
+          const {players}: { players: IPlayer[] } = JSON.parse(data);
+          if (!isValidPlayerArray(players)) {
             toast.error("올바르지 않은 JSON 파일입니다.")
             return;
           }
@@ -59,8 +58,6 @@
           }))
           playerStore.set(structuredClone(players));
           tempPlayers = structuredClone(checkPlayers)
-          mapStore.set(structuredClone(maps));
-
           toast.success("불러오기 성공")
 
         } catch (err) {
@@ -105,7 +102,8 @@
   }
 
   const selectMap = () => {
-    const mapList = $mapStore
+    let mapList = $mapStore
+    mapList = mapList.filter((m) => m.enabled);
     const mapWeight = createCumulativeWeights(mapList);
     let selectMap = selectRandomWeightedBinary(mapList, mapWeight);
     while (!selectMap) {

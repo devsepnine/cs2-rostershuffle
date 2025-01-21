@@ -15,19 +15,28 @@
   import {changeNumberBlur, changeNumberValue} from "$lib/utils";
   import {Button} from "$lib/components/ui/button";
   import {createEventDispatcher} from "svelte";
+  import {Checkbox} from "$lib/components/ui/checkbox";
+  import {Slider} from "$lib/components/ui/slider";
 
   export let originMap: IMap;
 
   const dispatch = createEventDispatcher()
 
 
-  let weight: string | number = originMap.weight;
+  let weight: number[] = [originMap.weight];
+  let enabled: boolean = originMap.enabled;
 
   const saveData = () => {
     dispatch('updateMap', {
       name: originMap.name,
-      weight: Number(weight)
+      weight: Number(weight[0]),
+      enabled
     })
+  }
+
+  const toggleActive = () => {
+    enabled = !enabled;
+    saveData();
   }
 
 </script>
@@ -35,9 +44,13 @@
 <Sheet>
     <SheetTrigger>
         <div class="map">
-            {originMap.name}
-            <Badge>
-                Weight : {originMap.weight}
+            <div class="w-28 text-left">
+                {originMap.name}
+            </div>
+            <Badge class="w-28 text-right">
+                <div>
+                    Weight : {originMap.weight}
+                </div>
             </Badge>
         </div>
     </SheetTrigger>
@@ -52,11 +65,9 @@
         </SheetHeader>
         <div class="grid gap-4 py-4">
             <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="kd" class="text-right">Weight</Label>
-                <Input id="kd" bind:value={weight} inputmode="numeric" pattern="[0-9.]*"
-                       on:input={(e) => {weight = changeNumberValue(e);}}
-                       on:blur={(e) => {weight = String(changeNumberBlur(e));}}
-                       class="col-span-3"/>
+                <Label for="kd" class="text-right">Weight </Label>
+                {weight}
+                <Slider min={0} max={10} step={0.1} bind:value={weight}/>
             </div>
             <SheetClose asChild let:builder>
                 <Button builders={[builder]} on:click={saveData}>
@@ -66,6 +77,11 @@
         </div>
     </SheetContent>
 </Sheet>
+<button on:click={toggleActive}>
+    <Badge variant={enabled ? 'default' : 'destructive'}>
+        {originMap.enabled ? 'Active' : 'Inactive'}
+    </Badge>
+</button>
 
 <style lang="scss">
   .map {

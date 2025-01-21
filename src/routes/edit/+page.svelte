@@ -8,6 +8,7 @@
   import PlayerEdit from "$lib/components/edit/PlayerEdit.svelte";
   import PlayerADD from "$lib/components/edit/PlayerADD.svelte";
   import MapEdit from "$lib/components/edit/MapEdit.svelte";
+  import CustomElo from "$lib/components/edit/CustomElo.svelte";
 
   $: playerStore = localStorageWritable<IPlayer[]>('playerStore', []);
   $: mapStore = localStorageWritable<IMap[]>('mapStore', []);
@@ -78,6 +79,9 @@
                             <MapEdit originMap={map} on:updateMap={handleMapUpdate}/>
                         </div>
                     {/each}
+                    <div>
+                        <CustomElo/>
+                    </div>
                 </ScrollArea>
             </div>
         </div>

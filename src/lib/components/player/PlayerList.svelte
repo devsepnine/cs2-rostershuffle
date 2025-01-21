@@ -3,9 +3,12 @@
   import {ScrollArea} from "$lib/components/ui/scroll-area";
   import BackupButton from "$lib/components/BackupButton.svelte";
   import {Button} from "$lib/components/ui/button";
+  import {Input} from "$lib/components/ui/input";
 
   export let playerList;
   export let uploadFunc;
+
+  let filteredName = "";
 
   $: sortedPlayers = [...playerList].sort((a, b) => {
     if (a.check && !b.check) return -1;
@@ -41,10 +44,12 @@
                     </Button>
                     <BackupButton/>
                 </div>
-                {#each sortedPlayers as player (player.name)}
+                <div class="py-2 px-4">
+                    <Input bind:value={filteredName}/>
+                </div>
+                {#each sortedPlayers.filter((p) => p.name.includes(filteredName)) as player (player.name)}
                     <Player bind:check={player.check} player={player}/>
                 {/each}
-
             </div>
 
         </ScrollArea>

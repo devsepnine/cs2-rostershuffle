@@ -1,12 +1,14 @@
-import {type ClassValue, clsx} from "clsx";
-import {twMerge} from "tailwind-merge";
-import {cubicOut} from "svelte/easing";
-import type {TransitionConfig} from "svelte/transition";
-import type {IMap, IPlayer, IPlayerCheck} from "../types/common";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { cubicOut } from "svelte/easing";
+import type { TransitionConfig } from "svelte/transition";
+import type { IMap, IPlayer, IPlayerCheck } from "../types/common";
+import { customEloStore } from "../store/rosterStore";
+import { get } from "svelte/store";
 
 const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
-}
+};
 
 type FlyAndScaleParams = {
   y?: number;
@@ -17,7 +19,7 @@ type FlyAndScaleParams = {
 
 const flyAndScale = (
   node: Element,
-  params: FlyAndScaleParams = {y: -8, x: 0, start: 0.95, duration: 150}
+  params: FlyAndScaleParams = { y: -8, x: 0, start: 0.95, duration: 150 }
 ): TransitionConfig => {
   const style = getComputedStyle(node);
   const transform = style.transform === "none" ? "" : style.transform;
@@ -55,31 +57,36 @@ const flyAndScale = (
 
       return styleToString({
         transform: `${transform} translate3d(${x}px, ${y}px, 0) scale(${scale})`,
-        opacity: t
+        opacity: t,
       });
     },
-    easing: cubicOut
+    easing: cubicOut,
   };
 };
 
 const calculateCustomELO = (player: IPlayer | IPlayerCheck) => {
+  let baseElo = get(customEloStore);
+
   const customElo = Math.floor(
-    (player.kd * 4) +
-    (player.hltvRating * 8) +
-    (player.winRate * 8) +
-    (player.headshotPercentage * 2) +
-    (player.adr * 10)
-  )
+    player.kd * baseElo.kd +
+      player.hltvRating * baseElo.hltvRating +
+      player.winRate * baseElo.winRate +
+      player.headshotPercentage * baseElo.headshotPercentage +
+      player.adr * baseElo.adr
+  );
   const premier = calculatePremierScore(customElo, player.premierScore);
   return premier;
-}
+};
 
-const calculatePremierScore = (customElo: number, premierScore: number = 8000) => {
+const calculatePremierScore = (
+  customElo: number,
+  premierScore: number = 8000
+) => {
   const flagScore = 6000;
   const maxScore = 40000;
 
-  let score = premierScore
-  let weight: number
+  let score = premierScore;
+  let weight: number;
   if (score <= 0) {
     score = 5000;
   } else if (score <= 3000) {
@@ -97,7 +104,7 @@ const calculatePremierScore = (customElo: number, premierScore: number = 8000) =
   }
 
   return Math.floor(customElo * weight);
-}
+};
 
 const createCumulativeWeights = (items: IMap[]): number[] => {
   const cumulative: number[] = [];
@@ -107,8 +114,7 @@ const createCumulativeWeights = (items: IMap[]): number[] => {
     cumulative.push(sum);
   }
   return cumulative;
-}
-
+};
 
 const selectRandomWeightedBinary = <T extends { weight: number }>(
   items: T[],
@@ -131,48 +137,48 @@ const selectRandomWeightedBinary = <T extends { weight: number }>(
   }
 
   return items[low];
-}
+};
 
 const isValidPlayerArray = (data: any): data is IPlayerCheck[] => {
   if (!Array.isArray(data)) return false;
-  return data.every(item =>
-    typeof item.name === 'string' &&
-    typeof item.premierScore === 'number' &&
-    typeof item.kd === 'number' &&
-    typeof item.hltvRating === 'number' &&
-    typeof item.winRate === 'number' &&
-    typeof item.headshotPercentage === 'number' &&
-    typeof item.adr === 'number'
+  return data.every(
+    (item) =>
+      typeof item.name === "string" &&
+      typeof item.premierScore === "number" &&
+      typeof item.kd === "number" &&
+      typeof item.hltvRating === "number" &&
+      typeof item.winRate === "number" &&
+      typeof item.headshotPercentage === "number" &&
+      typeof item.adr === "number"
   );
-}
+};
 
 const isValidMapArray = (data: any): data is IMap[] => {
   if (!Array.isArray(data)) return false;
-  return data.every(item =>
-    typeof item.name === 'string' &&
-    typeof item.weight === 'number'
-  )
-}
+  return data.every(
+    (item) => typeof item.name === "string" && typeof item.weight === "number"
+  );
+};
 
 const changeNumberValue = (e: InputEvent) => {
   let val = (e.target as HTMLInputElement)?.value ?? 0;
-  val = val.replace(/[^0-9.]/g, '');
+  val = val.replace(/[^0-9.]/g, "");
   const dotCount = (val.match(/\./g) || []).length;
   if (dotCount > 1) {
-    const firstDotIndex = val.indexOf('.');
+    const firstDotIndex = val.indexOf(".");
     val =
       val.substring(0, firstDotIndex + 1) +
-      val.substring(firstDotIndex + 1).replace(/\./g, '');
+      val.substring(firstDotIndex + 1).replace(/\./g, "");
   }
   return val;
-}
+};
 const changeNumberBlur = (e: FocusEvent) => {
   let val = (e.target as HTMLInputElement)?.value ?? 0;
-  if (!val || val === '.' || Number.isNaN(Number(val))) {
-    val = '0';
+  if (!val || val === "." || Number.isNaN(Number(val))) {
+    val = "0";
   }
   return Number(val);
-}
+};
 
 export {
   cn,
@@ -183,5 +189,5 @@ export {
   isValidPlayerArray,
   isValidMapArray,
   changeNumberValue,
-  changeNumberBlur
-}
+  changeNumberBlur,
+};

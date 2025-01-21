@@ -2,6 +2,7 @@
   import type {IMap, IPlayer, IPlayerCheck} from "../types/common";
   import PlayerList from "$lib/components/player/PlayerList.svelte";
   import Result from "$lib/components/result/Result.svelte";
+  import {goto} from "$app/navigation";
   import {
     calculateCustomELO,
     createCumulativeWeights,
@@ -10,33 +11,31 @@
     selectRandomWeightedBinary
   } from "$lib/utils";
   import {toast} from "svelte-sonner";
-  import {localStorageWritable} from "../store/localStorageStore";
   import {onMount} from "svelte";
-  import {get} from "svelte/store";
-  import {useMapStore, usePlayerCTStore, usePlayerTStore} from "../store/rosterStore";
+  import {mapStore, playerStore, useMapStore, usePlayerCTStore, usePlayerTStore} from "../store/rosterStore";
   import {invoke} from "@tauri-apps/api/core";
 
-  let maxAllowedDifference: number = 400
+  import settingsIcon from '$lib/assets/settings.svg';
+
   let fileInputRef: HTMLInputElement;
 
-  let playerStore = localStorageWritable<IPlayer[]>('playerStore', []);
-  let mapStore = localStorageWritable<IMap[]>('mapStore', []);
 
   let tempPlayers: IPlayerCheck[] = [];
-  let mapList: IMap[] = [];
 
   $: processing = false;
 
   onMount(() => {
-    const loadPlayers = structuredClone(get(playerStore))
+    const loadPlayers = structuredClone($playerStore)
     tempPlayers = loadPlayers.map((p: IPlayer) => ({
       ...p,
       check: false,
       customElo: calculateCustomELO(p)
     }))
-    mapList = structuredClone(get(mapStore));
   })
 
+  const goEditPage = () => {
+    goto("/edit");
+  }
 
   function handleFileChange(event: any) {
     const file = event.target.files[0];
@@ -61,7 +60,6 @@
           playerStore.set(structuredClone(players));
           tempPlayers = structuredClone(checkPlayers)
           mapStore.set(structuredClone(maps));
-          mapList = structuredClone(maps);
 
           toast.success("불러오기 성공")
 
@@ -80,101 +78,10 @@
     }
   }
 
-
-  function getCombinations<T>(arr: T[], k: number): T[][] {
-    if (k === 0) return [[]];
-    if (arr.length === 0) return [];
-
-    const [first, ...rest] = arr;
-    const withFirst = getCombinations(rest, k - 1).map(comb => [first, ...comb]);
-    const withoutFirst = getCombinations(rest, k);
-
-    return withFirst.concat(withoutFirst);
-  }
-
-  function splitPlayersIntoBalancedTeams(
-    players: IPlayerCheck[],
-  ): { teamA: IPlayerCheck[], teamB: IPlayerCheck[] } | null {
-    if (players.length < 3 || players.length % 2 !== 0) {
-      toast.error('플레이어수는 2명 초과 짝수여야 합니다.')
-      return null;
-    }
-    if (players.length > 26) {
-      toast.error('플레이어수는 26명을 초과할수 없습니다.')
-      return null;
-    }
-
-    const sortedPlayers = [...players].sort((a, b) => b.customElo - a.customElo);
-    const topTwo = sortedPlayers.slice(0, 2);
-    const bottomTwo = sortedPlayers.slice(-2);
-
-    const topAssignments = [
-      {teamA: [topTwo[0]], teamB: [topTwo[1]]},
-      {teamA: [topTwo[1]], teamB: [topTwo[0]]},
-    ];
-
-    const bottomAssignments = [
-      {teamA: [bottomTwo[0]], teamB: [bottomTwo[1]]},
-      {teamA: [bottomTwo[1]], teamB: [bottomTwo[0]]},
-    ];
-
-    const remainingPlayers = sortedPlayers.slice(2, -2);
-
-    let bestSplit: { teamA: IPlayerCheck[], teamB: IPlayerCheck[] } | null = null;
-    let minDifference = Infinity;
-    const acceptableSplits: { teamA: IPlayerCheck[], teamB: IPlayerCheck[], difference: number }[] = [];
-
-    for (const topAssign of topAssignments) {
-      for (const bottomAssign of bottomAssignments) {
-        const initialTeamA = [...topAssign.teamA, ...bottomAssign.teamA];
-        const initialTeamB = [...topAssign.teamB, ...bottomAssign.teamB];
-
-        const teamSize = players.length / 2;
-        const remainingTeamASize = teamSize - initialTeamA.length;
-
-        // 남은 플레이어의 모든 조합을 생성
-        const combinations = getCombinations(remainingPlayers, remainingTeamASize);
-
-        for (const combo of combinations) {
-          const currentTeamA = [...initialTeamA, ...combo];
-          const currentTeamB = initialTeamB.concat(
-            remainingPlayers.filter(player => !combo.includes(player))
-          );
-
-          const teamASum = currentTeamA.reduce((sum, player) => sum + player.customElo, 0);
-          const teamBSum = currentTeamB.reduce((sum, player) => sum + player.customElo, 0);
-          const difference = Math.abs(teamASum - teamBSum);
-
-          // 최소 차이 업데이트
-          if (difference < minDifference) {
-            minDifference = difference;
-            bestSplit = {teamA: currentTeamA, teamB: currentTeamB};
-          }
-
-          // 허용 가능한 분할 수집
-          if (difference <= maxAllowedDifference) {
-            acceptableSplits.push({teamA: currentTeamA, teamB: currentTeamB, difference});
-          }
-        }
-      }
-    }
-
-    // 허용 가능한 분할 중 무작위 선택
-    if (acceptableSplits.length > 0) {
-      const randomIndex = Math.floor(Math.random() * acceptableSplits.length);
-      const selected = acceptableSplits[randomIndex];
-      return {teamA: selected.teamA, teamB: selected.teamB};
-    }
-
-    // 허용 가능한 분할이 없으면 최적의 분할 반환
-    return bestSplit;
-
-  }
-
   const splitTeam = async () => {
     const players = structuredClone(tempPlayers).filter((p) => p.check);
-    if (players.length < 4 || players.length > 24) {
-      toast.error('플레이어 인원수는 4명이상 24명 미만으로 설정해주세요.')
+    if (players.length < 4) {
+      toast.error('플레이어 인원수는 4명이상으로 설정해주세요.')
       processing = false
       return;
     }
@@ -198,6 +105,7 @@
   }
 
   const selectMap = () => {
+    const mapList = $mapStore
     const mapWeight = createCumulativeWeights(mapList);
     let selectMap = selectRandomWeightedBinary(mapList, mapWeight);
     while (!selectMap) {
@@ -215,6 +123,9 @@
 
 </script>
 
+<button class="settings" on:click={goEditPage}>
+    <img src={settingsIcon} alt="settings">
+</button>
 <div class="root">
     <div class="left">
         <div class="overflow-hidden h-full max-h-full">
@@ -234,22 +145,16 @@
             <input bind:this={fileInputRef} type="file" accept=".json,application/json" on:change={handleFileChange}
                    class="hidden"/>
         </div>
-
     </div>
 
 </div>
 
 <style lang="scss">
-  @keyframes slideBackground {
-    0% {
-      background-position: 40% center;
-    }
-    50% {
-      background-position: 60% center;
-    }
-    100% {
-      background-position: 40% center;
-    }
+  .settings {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
   }
 
   .root {
@@ -260,7 +165,7 @@
     background-image: url("$lib/assets/bg.svg");
     background-size: 800% 800%;
     background-repeat: no-repeat;
-    animation: slideBackground 360s linear alternate;
+    animation: slideBackground 360s linear infinite;
 
     .left {
       flex-shrink: 0;
@@ -301,11 +206,10 @@
 
           &.disabled {
             background-image: url("$lib/assets/bg3.svg");
-
           }
 
           &:hover {
-            background-size: 400% 1200%;
+            background-size: 600% 1200%;
           }
         }
       }

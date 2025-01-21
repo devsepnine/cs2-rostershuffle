@@ -1,7 +1,8 @@
 <script lang="ts">
   import Player from "$lib/components/player/Player.svelte";
   import {ScrollArea} from "$lib/components/ui/scroll-area";
-  import upload from "$lib/assets/upload.svg"
+  import BackupButton from "$lib/components/BackupButton.svelte";
+  import {Button} from "$lib/components/ui/button";
 
   export let playerList;
   export let uploadFunc;
@@ -34,14 +35,16 @@
     <div class="list-container">
         <ScrollArea class="h-full">
             <div class="player">
+                <div class="util">
+                    <Button class="upload" variant="outline" on:click={uploadFunc}>
+                        <span>Import</span>
+                    </Button>
+                    <BackupButton/>
+                </div>
                 {#each sortedPlayers as player (player.name)}
                     <Player bind:check={player.check} player={player}/>
                 {/each}
-                <div class="util">
-                    <button class="upload" on:click={uploadFunc}>
-                        <img src={upload} alt="upload"/> <span>Import</span>
-                    </button>
-                </div>
+
             </div>
 
         </ScrollArea>
@@ -72,24 +75,10 @@
         .util {
             display: flex;
             align-items: center;
-            height: 50px;
-            padding: 0 16px;
-
-            img {
-                width: 25px;
-                cursor: pointer;
-            }
-
-            .upload {
-                display: flex;
-                align-items: center;
-                column-gap: 0.5rem;
-                width: 100%;
-                height: 100%;
-                padding: 0.5rem;
-                background: hsl(var(--background) / 0.5);
-                border-radius: 0.5rem;
-            }
+            justify-content: center;
+            gap: 0.5rem;
+            height: 3.125rem;
+            padding: 0 1rem;
         }
     }
 </style>

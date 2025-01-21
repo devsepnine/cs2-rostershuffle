@@ -63,17 +63,43 @@ const flyAndScale = (
 };
 
 const calculateCustomELO = (player: IPlayer | IPlayerCheck) => {
-  return Math.floor(
-    (player.kd * 2) +
-    (player.hltvRating * 5) +
-    (player.winRate * 10) +
-    (player.headshotPercentage * 1) +
-    (player.adr * 3)
+  const customElo = Math.floor(
+    (player.kd * 4) +
+    (player.hltvRating * 8) +
+    (player.winRate * 8) +
+    (player.headshotPercentage * 2) +
+    (player.adr * 10)
   )
+  const premier = calculatePremierScore(customElo, player.premierScore);
+  return premier;
 }
 
+const calculatePremierScore = (customElo: number, premierScore: number = 8000) => {
+  const flagScore = 6000;
+  const maxScore = 40000;
 
-const createCumulativeWeights = <T extends { weight: number }>(items: T[]): number[] => {
+  let score = premierScore
+  let weight: number
+  if (score <= 0) {
+    score = 5000;
+  } else if (score <= 3000) {
+    score = 3000;
+  } else if (score > maxScore) {
+    score = maxScore;
+  }
+
+  if (score <= flagScore) {
+    weight = 0.5 + (score / flagScore) * 0.5;
+  } else if (score <= 40000) {
+    weight = 1 + ((score - flagScore) / 32000) * 0.5;
+  } else {
+    weight = 1.5;
+  }
+
+  return Math.floor(customElo * weight);
+}
+
+const createCumulativeWeights = (items: IMap[]): number[] => {
   const cumulative: number[] = [];
   let sum = 0;
   for (const item of items) {
@@ -82,6 +108,7 @@ const createCumulativeWeights = <T extends { weight: number }>(items: T[]): numb
   }
   return cumulative;
 }
+
 
 const selectRandomWeightedBinary = <T extends { weight: number }>(
   items: T[],
@@ -127,6 +154,26 @@ const isValidMapArray = (data: any): data is IMap[] => {
   )
 }
 
+const changeNumberValue = (e: InputEvent) => {
+  let val = (e.target as HTMLInputElement)?.value ?? 0;
+  val = val.replace(/[^0-9.]/g, '');
+  const dotCount = (val.match(/\./g) || []).length;
+  if (dotCount > 1) {
+    const firstDotIndex = val.indexOf('.');
+    val =
+      val.substring(0, firstDotIndex + 1) +
+      val.substring(firstDotIndex + 1).replace(/\./g, '');
+  }
+  return val;
+}
+const changeNumberBlur = (e: FocusEvent) => {
+  let val = (e.target as HTMLInputElement)?.value ?? 0;
+  if (!val || val === '.' || Number.isNaN(Number(val))) {
+    val = '0';
+  }
+  return Number(val);
+}
+
 export {
   cn,
   flyAndScale,
@@ -134,5 +181,7 @@ export {
   createCumulativeWeights,
   selectRandomWeightedBinary,
   isValidPlayerArray,
-  isValidMapArray
+  isValidMapArray,
+  changeNumberValue,
+  changeNumberBlur
 }

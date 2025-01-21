@@ -24,7 +24,7 @@
   ` : ``;
 
   $: eloCompare = Math.abs(getSumElo(t) - getSumElo(ct));
-  $: values = Array.from({length: 60}, (_, i) => ((eloCompare) + i).toString());
+  $: values = Array.from({length: 20}, (_, i) => ((eloCompare) + i).toString());
 </script>
 
 <div class="root">
@@ -40,7 +40,7 @@
                     <AnimatedCounter
                             values={values}
                             class='w-full text-center'
-                            interval={20}
+                            interval={30}
                             startImmediately={true}
                             loop={false}
                             direction="down"

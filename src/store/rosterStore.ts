@@ -99,4 +99,3 @@ export const useMapStore = writable<IMap>({
   weight: 0,
   enabled: true,
 });
-export const useCustomElo = localStorageWritable;

@@ -1,13 +1,12 @@
 <script lang="ts">
   import {Button} from "$lib/components/ui/button";
-  import {mapStore, playerStore} from "../../store/rosterStore";
+  import {playerStore} from "../../store/rosterStore";
   import {get} from "svelte/store";
 
 
   const handleBackup = () => {
     let jsonData = {
-      players: get(playerStore),
-      mapWeights: get(mapStore)
+      players: get(playerStore)
     }
 
     const jsonString = JSON.stringify(jsonData, null, 2);

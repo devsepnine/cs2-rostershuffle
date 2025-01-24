@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "cs2-rostershuffler",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.cozyfizz.cs2-rostershuffler",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -49,6 +49,7 @@
     "windows": {
       "digestAlgorithm": "sha256",
       "timestampUrl": "http://timestamp.comodoca.com",
+      "certificateThumbprint": "ced933d56696bb2f43824fc04d7878eeca6b3644",
       "nsis": {
         "installerIcon": "icons/icon.ico",
         "languages": [
